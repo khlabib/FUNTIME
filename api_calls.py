@@ -16,5 +16,5 @@ def main():
         return
     content=response.json()
     for artwork in content["data"]:
-        print(f'* {artwork['title']}')
+        print(f"* {artwork["title"]}")
 main()
