@@ -58,23 +58,21 @@
             ctx.fillRect(0, 0, size, size);
 
             // Calculation for angles (in radians)
-            // Both rings rotate anti-clockwise.
-            // We calculate the clockwise position and then rotate the entire ring by -angle.
             const secondsAngle = ((seconds + ms / 1000) / 60) * 2 * Math.PI;
             const hoursAngle = (((hours % 12) + minutes / 60 + seconds / 3600) / 12) * 2 * Math.PI;
 
-            // Outer Ring: Seconds (0-59)
+            // Outer Ring: Seconds (0-59, showing only increments of 5)
             drawRing(centerX, centerY, radius * 0.85, 60, secondsAngle, true);
 
             // Inner Ring: Hours (1-12)
             drawRing(centerX, centerY, radius * 0.55, 12, hoursAngle, false);
 
-            // Fixed Indicator
+            // Fixed Indicator: From center to the inner ring
             ctx.strokeStyle = 'white';
             ctx.lineWidth = 3;
             ctx.beginPath();
-            ctx.moveTo(centerX, centerY - radius * 0.45);
-            ctx.lineTo(centerX, centerY - radius * 0.95);
+            ctx.moveTo(centerX, centerY);
+            ctx.lineTo(centerX, centerY - radius * 0.65); // Extends slightly past the inner ring numbers
             ctx.stroke();
 
             requestAnimationFrame(draw);
@@ -88,14 +86,15 @@
             ctx.rotate(-rotationAngle);
 
             ctx.fillStyle = 'white';
-            // Adjusted font sizes for better readability and to avoid overlap in the seconds ring
             const fontSize = isSeconds ? radius * 0.08 : radius * 0.2;
             ctx.font = `bold ${fontSize}px sans-serif`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
 
             for (let i = 0; i < count; i++) {
-                // Numbers are arranged clockwise
+                // If it's the seconds ring, only show increments of 5
+                if (isSeconds && i % 5 !== 0) continue;
+
                 const angle = (i / count) * 2 * Math.PI;
 
                 ctx.save();
