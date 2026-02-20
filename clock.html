@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anti-Clockwise Dual-Ring Clock</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: black;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="clockCanvas"></canvas>
+    <script>
+        const canvas = document.getElementById('clockCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function resize() {
+            const size = Math.min(window.innerWidth, window.innerHeight);
+            const scale = window.devicePixelRatio || 1;
+            canvas.width = size * scale;
+            canvas.height = size * scale;
+            canvas.style.width = size + 'px';
+            canvas.style.height = size + 'px';
+            ctx.scale(scale, scale);
+        }
+
+        window.addEventListener('resize', resize);
+        resize();
+
+        function draw() {
+            const now = new Date();
+            const ms = now.getMilliseconds();
+            const seconds = now.getSeconds();
+            const minutes = now.getMinutes();
+            const hours = now.getHours();
+
+            const size = canvas.width / (window.devicePixelRatio || 1);
+            const centerX = size / 2;
+            const centerY = size / 2;
+            const radius = size / 2;
+
+            ctx.clearRect(0, 0, size, size);
+
+            ctx.fillStyle = 'black';
+            ctx.fillRect(0, 0, size, size);
+
+            // Calculation for angles (in radians)
+            // Both rings rotate anti-clockwise.
+            // We calculate the clockwise position and then rotate the entire ring by -angle.
+            const secondsAngle = ((seconds + ms / 1000) / 60) * 2 * Math.PI;
+            const hoursAngle = (((hours % 12) + minutes / 60 + seconds / 3600) / 12) * 2 * Math.PI;
+
+            // Outer Ring: Seconds (0-59)
+            drawRing(centerX, centerY, radius * 0.85, 60, secondsAngle, true);
+
+            // Inner Ring: Hours (1-12)
+            drawRing(centerX, centerY, radius * 0.55, 12, hoursAngle, false);
+
+            // Fixed Indicator
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY - radius * 0.45);
+            ctx.lineTo(centerX, centerY - radius * 0.95);
+            ctx.stroke();
+
+            requestAnimationFrame(draw);
+        }
+
+        function drawRing(x, y, radius, count, rotationAngle, isSeconds) {
+            ctx.save();
+            ctx.translate(x, y);
+
+            // Rotate the entire ring anti-clockwise
+            ctx.rotate(-rotationAngle);
+
+            ctx.fillStyle = 'white';
+            // Adjusted font sizes for better readability and to avoid overlap in the seconds ring
+            const fontSize = isSeconds ? radius * 0.08 : radius * 0.2;
+            ctx.font = `bold ${fontSize}px sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            for (let i = 0; i < count; i++) {
+                // Numbers are arranged clockwise
+                const angle = (i / count) * 2 * Math.PI;
+
+                ctx.save();
+                ctx.rotate(angle);
+                ctx.translate(0, -radius);
+
+                // Correction to keep numerals upright
+                ctx.rotate(rotationAngle - angle);
+
+                const label = isSeconds ? i : (i === 0 ? 12 : i);
+                ctx.fillText(label, 0, 0);
+                ctx.restore();
+            }
+            ctx.restore();
+        }
+
+        requestAnimationFrame(draw);
+    </script>
+</body>
+</html>
